@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Status Negociações</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f7f7f5;
+      --bg-tertiary: #f1efe8;
+      --text-primary: #1a1a18;
+      --text-secondary: #5f5e5a;
+      --border: rgba(0,0,0,0.12);
+      --border-md: rgba(0,0,0,0.22);
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-primary: #1c1c1a;
+        --bg-secondary: #252523;
+        --bg-tertiary: #2c2c2a;
+        --text-primary: #f0ede6;
+        --text-secondary: #888780;
+        --border: rgba(255,255,255,0.1);
+        --border-md: rgba(255,255,255,0.2);
+      }
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+
+    .container { max-width: 1100px; margin: 0 auto; }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.75rem;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .header h1 { font-size: 20px; font-weight: 600; color: var(--text-primary); }
+    .header-sub { font-size: 13px; color: var(--text-secondary); margin-top: 3px; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat {
+      background: var(--bg-primary);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+    }
+
+    .stat-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+    .stat-value { font-size: 24px; font-weight: 500; color: var(--text-primary); }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .controls input {
+      flex: 1;
+      min-width: 180px;
+      font-size: 13px;
+      padding: 8px 12px;
+      border: 0.5px solid var(--border-md);
+      border-radius: var(--radius-md);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      outline: none;
+      font-family: var(--font);
+    }
+
+    .controls input:focus { border-color: #378ADD; }
+
+    .controls select {
+      font-size: 13px;
+      padding: 8px 10px;
+      border: 0.5px solid var(--border-md);
+      border-radius: var(--radius-md);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      outline: none;
+      font-family: var(--font);
+      cursor: pointer;
+    }
+
+    .btn {
+      font-size: 13px;
+      font-family: var(--font);
+      padding: 8px 14px;
+      border: 0.5px solid var(--border-md);
+      border-radius: var(--radius-md);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+
+    .btn:hover { background: var(--bg-secondary); }
+
+    .btn-primary {
+      background: #1a1a1a;
+      color: #fff;
+      border-color: #1a1a1a;
+    }
+
+    .btn-primary:hover { background: #333; }
+
+    @media (prefers-color-scheme: dark) {
+      .btn-primary { background: #e8e5de; color: #1a1a18; border-color: #e8e5de; }
+      .btn-primary:hover { background: #fff; }
+    }
+
+    .table-wrap {
+      background: var(--bg-primary);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      min-width: 700px;
+    }
+
+    th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 10px 14px;
+      border-bottom: 0.5px solid var(--border);
+      background: var(--bg-secondary);
+    }
+
+    td {
+      padding: 13px 14px;
+      border-bottom: 0.5px solid var(--border);
+      color: var(--text-primary);
+      vertical-align: middle;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--bg-secondary); }
+
+    .fornecedor-name { font-weight: 500; }
+
+    .area-badge {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 20px;
+      background: var(--bg-secondary);
+      color: var(--text-secondary);
+      border: 0.5px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .status-select {
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 20px;
+      border: 0.5px solid var(--border-md);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      cursor: pointer;
+      font-family: var(--font);
+      outline: none;
+    }
+
+    .action-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-secondary);
+      padding: 5px;
+      border-radius: 6px;
+      font-size: 16px;
+      line-height: 1;
+      transition: background 0.12s, color 0.12s;
+    }
+
+    .action-btn:hover { color: var(--text-primary); background: var(--bg-secondary); }
+
+    .empty {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    /* Modal */
+    .modal-bg {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .modal-bg.open { display: flex; }
+
+    .modal {
+      background: var(--bg-primary);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem;
+      width: 460px;
+      max-width: 100%;
+      border: 0.5px solid var(--border-md);
+    }
+
+    .modal h2 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 1.25rem;
+      color: var(--text-primary);
+    }
+
+    .form-row { margin-bottom: 14px; }
+
+    .form-row label {
+      display: block;
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 5px;
+    }
+
+    .form-row input,
+    .form-row select {
+      width: 100%;
+      font-size: 13px;
+      padding: 9px 11px;
+      border: 0.5px solid var(--border-md);
+      border-radius: var(--radius-md);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      outline: none;
+      font-family: var(--font);
+    }
+
+    .form-row input:focus,
+    .form-row select:focus { border-color: #378ADD; }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 1.5rem;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: #1a1a1a;
+      color: #fff;
+      font-size: 13px;
+      padding: 10px 16px;
+      border-radius: var(--radius-md);
+      z-index: 999;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.2s, transform 0.2s;
+      pointer-events: none;
+    }
+
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    @media (prefers-color-scheme: dark) {
+      .toast { background: #e8e5de; color: #1a1a18; }
+    }
+
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2 class="sr-only">Tracker de negociações com fornecedores</h2>
+
+  <div class="header">
+    <div>
+      <h1>Status negociações</h1>
+      <div class="header-sub">Acompanhamento de fornecedores e contratos</div>
+    </div>
+    <button class="btn btn-primary" onclick="openModal()">
+      <i class="ti ti-plus" aria-hidden="true"></i> Nova negociação
+    </button>
+  </div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="controls">
+    <input type="text" id="search" placeholder="Buscar fornecedor, produto ou tarefa..." oninput="render()">
+    <select id="filterStatus" onchange="render()">
+      <option value="">Todos os status</option>
+      <option>Validação de Proposta</option>
+      <option>Em Contrato</option>
+      <option>TCGG</option>
+      <option>Em Negociação</option>
+      <option>Aprovado</option>
+      <option>Cancelado</option>
+    </select>
+    <select id="filterArea" onchange="render()">
+      <option value="">Todas as áreas</option>
+      <option>Digital</option>
+      <option>Juridico</option>
+      <option>Comercial</option>
+    </select>
+    <button class="btn" onclick="exportCSV()">
+      <i class="ti ti-download" aria-hidden="true"></i> Exportar CSV
+    </button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Fornecedor</th>
+          <th>Produto</th>
+          <th>Tarefa</th>
+          <th>Responsável</th>
+          <th>Área</th>
+          <th>Data final</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal -->
+<div id="modal-bg" class="modal-bg" onclick="closeModalOutside(event)">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <h2 id="modal-title">Nova negociação</h2>
+    <div class="form-row"><label>Fornecedor *</label><input id="f-fornecedor" type="text" placeholder="Ex: Bradesco"></div>
+    <div class="form-row"><label>Produto</label><input id="f-produto" type="text" placeholder="Ex: Pix Saque"></div>
+    <div class="form-row"><label>Tarefa / Etapa atual</label><input id="f-tarefa" type="text" placeholder="Ex: Validação de Proposta"></div>
+    <div class="form-grid">
+      <div class="form-row"><label>Responsável</label><input id="f-resp" type="text" placeholder="Ex: Baró"></div>
+      <div class="form-row"><label>Data final prevista</label><input id="f-data" type="text" placeholder="Ex: 15/jun"></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-row"><label>Área</label>
+        <select id="f-area">
+          <option>Digital</option>
+          <option>Juridico</option>
+          <option>Comercial</option>
+        </select>
+      </div>
+      <div class="form-row"><label>Status</label>
+        <select id="f-status">
+          <option>Validação de Proposta</option>
+          <option>Em Contrato</option>
+          <option>TCGG</option>
+          <option>Em Negociação</option>
+          <option>Aprovado</option>
+          <option>Cancelado</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModalDirect()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveItem()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const STORAGE_KEY = 'negociacoes_v1';
+
+  const defaultData = [
+    { id:1, fornecedor:'Bradesco', produto:'Pix Saque e Pag de contas', tarefa:'Validação de Proposta', resp:'Baró', area:'Digital', data:'10/nov', status:'Validação de Proposta' },
+    { id:2, fornecedor:'ATM24HRS', produto:'Saque Dinheiro', tarefa:'TCGG', resp:'Baró', area:'Juridico', data:'03/nov', status:'TCGG' },
+    { id:3, fornecedor:'EABank', produto:'Totem de Pagamentos', tarefa:'TCGG', resp:'Baró', area:'Juridico', data:'15/jun', status:'TCGG' },
+    { id:4, fornecedor:'BlackHawk', produto:'Gift Card', tarefa:'Validando o contrato', resp:'Baró', area:'Digital', data:'15/jun', status:'Em Contrato' },
+    { id:5, fornecedor:'Vivo', produto:'Chip de Telefonia', tarefa:'Validação de Proposta', resp:'Baró', area:'Digital', data:'15/jun', status:'Validação de Proposta' },
+    { id:6, fornecedor:'Surf Telecom', produto:'Chip de Telefonia', tarefa:'Validação de Proposta', resp:'Baró', area:'Digital', data:'15/jun', status:'Validação de Proposta' },
+  ];
+
+  let data = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') || defaultData;
+  let nextId = data.length ? Math.max(...data.map(d => d.id)) + 1 : 7;
+  let editingId = null;
+
+  function save() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  function renderStats() {
+    const total = data.length;
+    const pendentes = data.filter(d => !['Aprovado','Cancelado'].includes(d.status)).length;
+    const contratos = data.filter(d => d.status === 'Em Contrato').length;
+    const aprovados = data.filter(d => d.status === 'Aprovado').length;
+    document.getElementById('stats').innerHTML = `
+      <div class="stat"><div class="stat-label">Total</div><div class="stat-value">${total}</div></div>
+      <div class="stat"><div class="stat-label">Em andamento</div><div class="stat-value">${pendentes}</div></div>
+      <div class="stat"><div class="stat-label">Em contrato</div><div class="stat-value">${contratos}</div></div>
+      <div class="stat"><div class="stat-label">Aprovados</div><div class="stat-value">${aprovados}</div></div>
+    `;
+  }
+
+  const statusOptions = ['Validação de Proposta','Em Contrato','TCGG','Em Negociação','Aprovado','Cancelado'];
+
+  function render() {
+    renderStats();
+    const q = document.getElementById('search').value.toLowerCase();
+    const fs = document.getElementById('filterStatus').value;
+    const fa = document.getElementById('filterArea').value;
+
+    const filtered = data.filter(d => {
+      const match = !q || [d.fornecedor, d.produto, d.tarefa, d.resp].some(v => v.toLowerCase().includes(q));
+      return match && (!fs || d.status === fs) && (!fa || d.area === fa);
+    });
+
+    const tbody = document.getElementById('tbody');
+    if (!filtered.length) {
+      tbody.innerHTML = '<tr><td colspan="8"><div class="empty">Nenhuma negociação encontrada</div></td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = filtered.map(d => `
+      <tr>
+        <td><span class="fornecedor-name">${esc(d.fornecedor)}</span></td>
+        <td style="color:var(--text-secondary)">${esc(d.produto)}</td>
+        <td>${esc(d.tarefa)}</td>
+        <td style="color:var(--text-secondary)">${esc(d.resp)}</td>
+        <td><span class="area-badge">${esc(d.area)}</span></td>
+        <td style="font-size:12px;color:var(--text-secondary)">${esc(d.data)}</td>
+        <td>
+          <select class="status-select" onchange="changeStatus(${d.id}, this.value)">
+            ${statusOptions.map(s => `<option value="${s}"${s===d.status?' selected':''}>${s}</option>`).join('')}
+          </select>
+        </td>
+        <td style="text-align:right;white-space:nowrap">
+          <button class="action-btn" onclick="editItem(${d.id})" title="Editar" aria-label="Editar ${esc(d.fornecedor)}"><i class="ti ti-edit" aria-hidden="true"></i></button>
+          <button class="action-btn" onclick="deleteItem(${d.id})" title="Remover" aria-label="Remover ${esc(d.fornecedor)}"><i class="ti ti-trash" aria-hidden="true"></i></button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function esc(str) {
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function changeStatus(id, newStatus) {
+    const item = data.find(d => d.id === id);
+    if (item) { item.status = newStatus; save(); renderStats(); toast('Status atualizado'); }
+  }
+
+  function openModal(id = null) {
+    editingId = id;
+    document.getElementById('modal-title').textContent = id ? 'Editar negociação' : 'Nova negociação';
+    if (id) {
+      const d = data.find(x => x.id === id);
+      document.getElementById('f-fornecedor').value = d.fornecedor;
+      document.getElementById('f-produto').value = d.produto;
+      document.getElementById('f-tarefa').value = d.tarefa;
+      document.getElementById('f-resp').value = d.resp;
+      document.getElementById('f-area').value = d.area;
+      document.getElementById('f-data').value = d.data;
+      document.getElementById('f-status').value = d.status;
+    } else {
+      ['f-fornecedor','f-produto','f-tarefa','f-resp','f-data'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('f-area').value = 'Digital';
+      document.getElementById('f-status').value = 'Validação de Proposta';
+    }
+    document.getElementById('modal-bg').classList.add('open');
+    document.getElementById('f-fornecedor').focus();
+  }
+
+  function closeModalOutside(e) { if (e.target.id === 'modal-bg') closeModalDirect(); }
+  function closeModalDirect() { document.getElementById('modal-bg').classList.remove('open'); }
+
+  function saveItem() {
+    const fornecedor = document.getElementById('f-fornecedor').value.trim();
+    if (!fornecedor) { alert('Informe o fornecedor'); return; }
+    const item = {
+      id: editingId || nextId++,
+      fornecedor,
+      produto: document.getElementById('f-produto').value.trim(),
+      tarefa: document.getElementById('f-tarefa').value.trim(),
+      resp: document.getElementById('f-resp').value.trim(),
+      area: document.getElementById('f-area').value,
+      data: document.getElementById('f-data').value.trim(),
+      status: document.getElementById('f-status').value,
+    };
+    if (editingId) {
+      const idx = data.findIndex(d => d.id === editingId);
+      data[idx] = item;
+      toast('Negociação atualizada');
+    } else {
+      data.push(item);
+      toast('Negociação adicionada');
+    }
+    save();
+    closeModalDirect();
+    render();
+  }
+
+  function editItem(id) { openModal(id); }
+
+  function deleteItem(id) {
+    const item = data.find(d => d.id === id);
+    if (confirm(`Remover "${item?.fornecedor}"?`)) {
+      data = data.filter(d => d.id !== id);
+      save();
+      render();
+      toast('Removido');
+    }
+  }
+
+  function exportCSV() {
+    const headers = ['Fornecedor','Produto','Tarefa','Responsável','Área','Data Final','Status'];
+    const rows = data.map(d => [d.fornecedor, d.produto, d.tarefa, d.resp, d.area, d.data, d.status].map(v => `"${v}"`).join(','));
+    const csv = '\uFEFF' + [headers.join(','), ...rows].join('\r\n');
+    const a = document.createElement('a');
+    a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+    a.download = 'negociacoes.csv';
+    a.click();
+  }
+
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModalDirect(); });
+
+  render();
+</script>
+</body>
+</html>
